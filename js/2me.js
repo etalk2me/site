@@ -1,5 +1,6 @@
 $(function(){
   var iosocket = io.connect();
+  var UserConnect = null;
   iosocket.on('connect', function () {
     $('#entradaChat').append($('<li>Conectado com sucesso</li>'));
     $('#saidaChat').attr('placeholder','Digite sua mensagem...');
@@ -7,18 +8,24 @@ $(function(){
     $('#saidaChat').focus();
 
     iosocket.emit('connect');
+    iosocket.on('connectUser', function (user){
+      UserConnect = user;
+      console.log(UserConnect);
+    });
 
     iosocket.on('countusers', function(c) {
       $(".numberusers").text(c + ' online');
     });
 
-    iosocket.on('message', function(message) {
-      WriteMessage(message);
+    iosocket.on('messageToClient', function(message) {
+      WriteMessage(message, false, UserConnect.id);
       window.focus();
       PlaySound();
     });
     iosocket.on('disconnect', function() {
       $('#entradaChat').append('<li>Desconectado</li>');
+      alert('Você desconectou do chat, sua página será recarregada!');
+      location.reload();
     });
   });
 
@@ -30,8 +37,8 @@ $(function(){
       event.preventDefault();
       var message = $('#saidaChat').val();
       if(message.length > 0){
-        iosocket.send(message);
-        WriteMessage(message, true);
+        iosocket.emit('message', { user: UserConnect, msg:message });
+        WriteMessage(message, true, UserConnect.id);
         $('#saidaChat').val('');
         $('.cont').text(250);
       }
@@ -51,31 +58,35 @@ var isSafari = Object.prototype.toString.call(window.HTMLElement).indexOf('Const
 var isChrome = !!window.chrome && !isOpera;              // Chrome 1+
 var isIE = /*@cc_on!@*/false || !!document.documentMode; // At least IE6
 
-var WriteMessage = function (message, my){
+var WriteMessage = function (message, my, id){
   var classMy = "";
   if(my) {
     classMy = "myli";
+  }
+  var InsertNewMessage = function (li){
+    li.css('display','none');
+    var data = new Date().toLocaleString();
+    li.prepend('<div class="clock" title="'+data+'"></div>')
+    $('#entradaChat').prepend(li);
+    li.slideToggle();
   }
   if(message.indexOf('.jpg') > -1 || message.indexOf('.png') > -1 || message.indexOf('.jpeg') > -1 || message.indexOf('.gif') > -1){
     var srcimg = GetImage(message);
     var img = '<img src="'+GetImage(message)+'"/>';
     if(message.replace(srcimg, '').length > 0){
-      $('#entradaChat').append($('<li class="'+classMy+'"></li>').text(message.replace(srcimg, '')));  
+      InsertNewMessage($('<li id-user="'+id+'" class="'+classMy+'"></li>').text(message.replace(srcimg, '')));  
     }
-    $('#entradaChat').append($('<li class="'+classMy+'"></li>').html(img));
+    InsertNewMessage($('<li id-user="'+id+'" class="'+classMy+'"></li>').html(img));
   } else if(message.indexOf('www.youtube.com/watch?v=') > -1 || message.indexOf('youtu.be/') > -1){
     var srcvideo = GetVideo(message);
     var video = '<iframe width="560" height="315" src="https://www.youtube.com/embed/'+srcvideo+'" frameborder="0" allowfullscreen></iframe>';
-    $('#entradaChat').append($('<li class="'+classMy+'"></li>').text(message));  
-    $('#entradaChat').append($('<li class="'+classMy+'"></li>').html(video));
+    InsertNewMessage($('<li id-user="'+id+'" class="'+classMy+'"></li>').text(message));  
+    InsertNewMessage($('<li id-user="'+id+'" class="'+classMy+'"></li>').html(video));
   } else if(message.indexOf('grooveshark:') > -1){
     var srcmusic = GetMusic(message);
-    $('#entradaChat').append($('<li class="'+classMy+'"></li>').html(srcmusic));
+    InsertNewMessage($('<li id-user="'+id+'" class="'+classMy+'"></li>').html(srcmusic));
   } else {
-    $('#entradaChat').append($('<li class="'+classMy+'"></li>').text(message));
-  }
-  if($('#autoscroll').get(0).checked){
-    window.scrollTo(0,document.body.scrollHeight);
+    InsertNewMessage($('<li id-user="'+id+'" class="'+classMy+'"></li>').text(message));
   }
 }
 
