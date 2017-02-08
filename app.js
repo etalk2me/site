@@ -2,7 +2,7 @@ var app = require('express')();
 var path = require('path');
 var server = require('http').createServer(app);
 var io = require('socket.io').listen(server);
-var port = 80;
+var port = 3000;
 
 server.listen(port);
 console.log('se conecte na: http://localhost:' + port);
@@ -28,6 +28,7 @@ app.get('/sounds/*', function(req, res){
 });
 
 var setUserRoom = function(obj){
+  debugger;
   rooms.forEach(function (e,i){
     if(e.id == obj.room){
       rooms[i].usersIn.push(obj);
@@ -35,6 +36,7 @@ var setUserRoom = function(obj){
   })
 }
 var sendMsgToRoom = function (obj){
+  debugger;
   rooms.forEach(function (e,i){
     if(e.id == obj.user.room){
       e.usersIn.forEach(function (e2,i2){
@@ -66,10 +68,12 @@ rooms.push(
 io.sockets.on('connection', function (socket) {
 	
     socket.on('message', function (obj) {
+      debugger;
         sendMsgToRoom(obj)        
     });
 
     socket.on('connect', function() {
+      debugger;
       var userCoon = {id:this.id, room:1};
       users.push(userCoon);
       setUserRoom(userCoon);

@@ -7,8 +7,9 @@ $(function(){
     $('#saidaChat').removeAttr('readonly');
     $('#saidaChat').focus();
 
-    iosocket.emit('connect');
+    //iosocket.emit('connect');
     iosocket.on('connectUser', function (user){
+      debugger;
       UserConnect = user;
       console.log(UserConnect);
     });
