@@ -20,7 +20,7 @@ app.get('/css/*', function(req, res){
 app.get('/js/*', function(req, res){
   res.sendfile(path.join(__dirname, '/js/', req.params[0]));
 });
-app.get('/images/*', function(req, res){
+app.get('/images  /*', function(req, res){
   res.sendfile(path.join(__dirname, '/images/', req.params[0]));
 });
 app.get('/sounds/*', function(req, res){
